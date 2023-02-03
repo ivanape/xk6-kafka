@@ -1,5 +1,7 @@
 package kafka
 
+import "encoding/binary"
+
 type AvroSerde struct {
 	Serdes
 }
@@ -10,6 +12,9 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 	if err != nil {
 		return nil, err
 	}
+
+	binarySchemaId := make([]byte, 4)
+	binary.BigEndian.PutUint32(binarySchemaId, uint32(schema.ID))
 
 	encodedData, _, originalErr := schema.Codec().NativeFromTextual(jsonBytes)
 	if originalErr != nil {
@@ -23,7 +28,15 @@ func (*AvroSerde) Serialize(data interface{}, schema *Schema) ([]byte, *Xk6Kafka
 			originalErr)
 	}
 
-	return bytesData, nil
+	var binaryMsg []byte
+	// first byte is magic byte, always 0 for now
+	binaryMsg = append(binaryMsg, byte(0))
+	//4-byte schema ID as returned by the Schema Registry
+	binaryMsg = append(binaryMsg, binarySchemaId...)
+	//avro serialized data in Avro’s binary encoding
+	binaryMsg = append(binaryMsg, bytesData...)
+
+	return binaryMsg, nil
 }
 
 // Deserialize deserializes a Avro binary into a JSON object.
