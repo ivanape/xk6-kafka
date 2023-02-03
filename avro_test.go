@@ -9,7 +9,7 @@ import (
 // TestSerializeAvro serializes a JSON object into Avro binary.
 func TestSerializeAvro(t *testing.T) {
 	avroSerde := &AvroSerde{}
-	expected := []byte{0x0a, 0x76, 0x61, 0x6c, 0x75, 0x65}
+	expected := []byte{0x0, 0x0, 0x0, 0x0, 0x2, 0xa, 0x76, 0x61, 0x6c, 0x75, 0x65}
 	schema := &Schema{
 		ID: 2,
 		Schema: `{
